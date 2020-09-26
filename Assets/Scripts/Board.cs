@@ -95,9 +95,6 @@ public class Board : MonoBehaviour
         GeneratePill();
     }
 
-
-
-    // scan left
     private void Scan(GameObject debris, Vector2Int pos, char color, ref HashSet<Vector2Int> destroyables)
     {
         for (int x = pos.x - 1; x > 0; x--)

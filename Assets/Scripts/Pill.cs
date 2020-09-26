@@ -20,13 +20,11 @@ public class Pill : MonoBehaviour
 
     private float dropTimer;
     private const char EMPTY = '-';
-    private string type;
     private char colorA;
     private char colorB;
 
     public void Init(Vector2Int startPos, string type)
     {
-        this.type = type;
         pos = startPos;
         transform.localPosition = new Vector3(pos.x + Board.Instance.horizontalOffset, pos.y + Board.Instance.verticalOffset, 0) * Board.Instance.scale;
 
