@@ -5,19 +5,22 @@ public class Player1Controller : MonoBehaviour
 {
     public static Player1Controller Instance { get; private set; }
 
-    [SerializeField] private GameObject currentPill;
+    private GameObject currentPill;
 
+    private PlayerInput playerInput;
     private Vector2 moveInput;
-    private bool rotateCW;
-    private bool rotateCC;
 
     private float downHoldTime;
     private float leftHoldTime;
     private float rightHoldTime;
 
+    private const float holdTime = 0.25f;
+    private const float moveDelay = 0.1f;
+
     private void Awake()
     {
         Instance = this;
+        playerInput = GetComponent<PlayerInput>();
     }
 
     void Update()
@@ -25,12 +28,6 @@ public class Player1Controller : MonoBehaviour
         GetInput();
         VerticalMovement();
         HorizontalMovement();
-        RotatePill();
-    }
-
-    public GameObject GetCurrentPill()
-    {
-        return currentPill;
     }
 
     public void SetCurrentPill(GameObject newPill)
@@ -40,13 +37,14 @@ public class Player1Controller : MonoBehaviour
 
     private void GetInput()
     {
-        moveInput = Gamepad.current.dpad.ReadValue();
-        rotateCC = Gamepad.current.buttonSouth.wasPressedThisFrame;
-        rotateCW = Gamepad.current.buttonEast.wasPressedThisFrame;
+        moveInput = playerInput.actions["Move"].ReadValue<Vector2>();
     }
 
     private void VerticalMovement()
     {
+        if (currentPill == null)
+            return;
+
         if (moveInput.y == 0)
         {
             downHoldTime = 0;
@@ -64,7 +62,7 @@ public class Player1Controller : MonoBehaviour
             {
                 downHoldTime -= Time.deltaTime;
 
-                if (downHoldTime <= -0.5f)
+                if (downHoldTime <= -holdTime)
                 {
                     currentPill.GetComponent<Pill>().MoveDown(true);
                     downHoldTime = Time.deltaTime;
@@ -74,7 +72,7 @@ public class Player1Controller : MonoBehaviour
             {
                 downHoldTime += Time.deltaTime;
 
-                if (downHoldTime > 0.1f + Time.deltaTime)
+                if (downHoldTime > moveDelay + Time.deltaTime)
                 {
                     currentPill.GetComponent<Pill>().MoveDown(true);
                     downHoldTime = Time.deltaTime;
@@ -85,6 +83,9 @@ public class Player1Controller : MonoBehaviour
 
     private void HorizontalMovement()
     {
+        if (currentPill == null)
+            return;
+
         if (moveInput.x == 0)
         {
             leftHoldTime = 0f;
@@ -98,12 +99,12 @@ public class Player1Controller : MonoBehaviour
                 currentPill.GetComponent<Pill>().MoveLeft();
                 leftHoldTime -= Time.deltaTime;
             }
-            // hold for 0.5 seconds 
+            // hold for holdtime seconds 
             else if (leftHoldTime < 0f)
             {
                 leftHoldTime -= Time.deltaTime;
 
-                if (leftHoldTime <= -0.5f)
+                if (leftHoldTime <= -holdTime)
                 {
                     currentPill.GetComponent<Pill>().MoveLeft();
                     leftHoldTime = Time.deltaTime;
@@ -113,7 +114,7 @@ public class Player1Controller : MonoBehaviour
             {
                 leftHoldTime += Time.deltaTime;
 
-                if (leftHoldTime > 0.1f + Time.deltaTime)
+                if (leftHoldTime > moveDelay + Time.deltaTime)
                 {
                     currentPill.GetComponent<Pill>().MoveLeft();
                     leftHoldTime = Time.deltaTime;
@@ -122,26 +123,28 @@ public class Player1Controller : MonoBehaviour
         }
         else if (moveInput.x == 1)
         {
+            // first press
             if (rightHoldTime == 0f)
             {
                 currentPill.GetComponent<Pill>().MoveRight();
                 rightHoldTime -= Time.deltaTime;
             }
+            // hold for holdtime seconds 
             else if (rightHoldTime < 0f)
             {
                 rightHoldTime -= Time.deltaTime;
 
-                if (rightHoldTime <= -0.5f)
+                if (rightHoldTime <= -holdTime)
                 {
                     currentPill.GetComponent<Pill>().MoveRight();
                     rightHoldTime = Time.deltaTime;
                 }
             }
-            else
+            else // holding, moves every 0.1f seconds
             {
                 rightHoldTime += Time.deltaTime;
 
-                if (rightHoldTime > 0.1f + Time.deltaTime)
+                if (rightHoldTime > moveDelay + Time.deltaTime)
                 {
                     currentPill.GetComponent<Pill>().MoveRight();
                     rightHoldTime = Time.deltaTime;
@@ -151,15 +154,19 @@ public class Player1Controller : MonoBehaviour
         }
     }
 
-    private void RotatePill()
+    public void OnRotateCW()
     {
-        if (rotateCC)
-        {
-            currentPill.GetComponent<Pill>().Rotate(1);
-        }
-        else if (rotateCW)
-        {
-            currentPill.GetComponent<Pill>().Rotate(-1);
-        }
+        if (currentPill == null)
+            return;
+
+        currentPill.GetComponent<Pill>().Rotate(-1);
+    }
+
+    public void OnRotateCC()
+    {
+        if (currentPill == null)
+            return;
+
+        currentPill.GetComponent<Pill>().Rotate(1);
     }
 }
